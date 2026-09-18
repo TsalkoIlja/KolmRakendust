@@ -1,71 +1,73 @@
-﻿using System;
-using System.Drawing;
-using System.Windows.Forms;
+﻿using System; 
+using System.Drawing; 
+using System.Windows.Forms; 
 
-namespace KolmRakendust
+namespace KolmRakendust 
 {
-    public partial class Form1 : Form
+    public partial class Form1 : Form 
     {
-        // Объявляем кнопки главного меню
-        private Button piltNupp;
-        private Button matemaatikaNupp;
-        private Button malumangNupp;
-        private TableLayoutPanel layoutPaneel;
-        public Form1()
-        {
-            // Настройки самого окна
-            Text = "Peamenüü";
-            Size = new Size(500, 450);
-            StartPosition = FormStartPosition.CenterScreen;
-            BackColor = Color.FromArgb(245, 247, 250); // Приятный светлый фон
+        // Объявление закрытых полей (переменных) для элементов управления
+        private Button piltNupp; 
+        private Button matemaatikaNupp; 
+        private Button malumangNupp; 
+        private TableLayoutPanel layoutPaneel; 
 
-            // Создаем сетку для выравнивания кнопок строго по центру
+        public Form1() 
+        {
+            Text = "Peamenüü - Kolm Rakendust"; // Установка заголовка окна
+            Size = new Size(550, 500); // Задание размеров окна (ширина: 550, высота: 500 пикселей)
+            StartPosition = FormStartPosition.CenterScreen; // Отображение окна по центру экрана при запуске
+            BackColor = Color.FromArgb(245, 247, 250); // Установка светлого фона формы с помощью RGB-цвета
+
+            // Создаем сеточную панель (TableLayoutPanel) для автоматического выравнивания кнопок
             layoutPaneel = new TableLayoutPanel
             {
-                Dock = DockStyle.Fill,
-                ColumnCount = 1,
-                RowCount = 3
+                Dock = DockStyle.Fill, // Заполнение панелью всего пространства формы
+                ColumnCount = 1, // Задание количества столбцов (1 столбец)
+                RowCount = 3, // Задание количества строк (3 строки)
+                Padding = new Padding(20) // Внутренний отступ от краев панели в 20 пикселей
             };
 
-            // Задаем пропорции строк (равномерно по центру)
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 33F));
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 33F));
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 33F));
+            // Настройка высоты строк: каждая из 3 строк занимает 33.3% от высоты панели
+            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3F)); 
+            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3F)); 
+            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3F)); 
 
-            // Функция для красивой стилизации кнопок
-            Button LooKenaNupp(string tekst, Color taustaVarv)
-            {
-                var nupp = new Button
-                {
-                    Text = tekst,
-                    Size = new Size(260, 50),
-                    Font = new Font("Segoe UI", 11F, FontStyle.Bold),
-                    ForeColor = Color.White,
-                    BackColor = taustaVarv,
-                    FlatStyle = FlatStyle.Flat,
-                    Anchor = AnchorStyles.None // Держит кнопку по центру ячейки
-                };
-                nupp.FlatAppearance.BorderSize = 0;
-                return nupp;
-            }
+            // Создание и настройка трех кнопок с помощью вспомогательного метода LooKenaNupp
+            piltNupp = LooKenaNupp("Pildi vaatamise programm", Color.FromArgb(52, 152, 219)); 
+            matemaatikaNupp = LooKenaNupp("Matemaatiline mäng", Color.FromArgb(46, 204, 113)); 
+            malumangNupp = LooKenaNupp("Mälumäng", Color.FromArgb(155, 89, 182)); 
 
-            // Создаем кнопки с современным оформлением
-            piltNupp = LooKenaNupp("Pildi vaatamise programm", Color.FromArgb(52, 152, 219));
-            matemaatikaNupp = LooKenaNupp("Matemaatiline mäng", Color.FromArgb(46, 204, 113));
-            malumangNupp = LooKenaNupp("Mälumäng", Color.FromArgb(155, 89, 182));
-
-            // События перехода к формам
-            piltNupp.Click += (s, e) => new PildivaatjaForm().Show();
+            // Привязка событий нажатия на кнопки (при клике создается и открывается соответствующая форма)
+            piltNupp.Click += (s, e) => new PildivaatjaForm().Show(); 
             matemaatikaNupp.Click += (s, e) => new MatemaatikaForm().Show();
-            malumangNupp.Click += (s, e) => new MalumangForm().Show();
+            malumangNupp.Click += (s, e) => new MalumangForm().Show(); 
 
-            // Добавляем кнопки в сетку
-            layoutPaneel.Controls.Add(piltNupp, 0, 0);
-            layoutPaneel.Controls.Add(matemaatikaNupp, 0, 1);
-            layoutPaneel.Controls.Add(malumangNupp, 0, 2);
+            // Добавление созданных кнопок в ячейки табличной панели
+            layoutPaneel.Controls.Add(piltNupp, 0, 0); 
+            layoutPaneel.Controls.Add(matemaatikaNupp, 0, 1); 
+            layoutPaneel.Controls.Add(malumangNupp, 0, 2); 
 
-            // Добавляем сетку на форму
-            Controls.Add(layoutPaneel);
+            Controls.Add(layoutPaneel); // Добавление сформированной панели на главную форму
+        }
+
+        // Вспомогательный метод для создания и красивого оформления кнопок
+        private Button LooKenaNupp(string tekst, Color taustaVarv)
+        {
+            var nupp = new Button // Создание нового экземпляра кнопки
+            {
+                Text = tekst, // Установка текста на кнопке
+                Size = new Size(280, 55), // Задание стандартного размера кнопки (280x55)
+                Font = new Font("Segoe UI", 11F, FontStyle.Bold), // Задание шрифта: Segoe UI, размер 11, жирный
+                ForeColor = Color.White, 
+                BackColor = taustaVarv, // Цвет фона — переданный в параметре цвет
+                FlatStyle = FlatStyle.Flat, // Плоский стиль отображения кнопки (без 3D- рамок)
+                Anchor = AnchorStyles.None // Отмена привязки к краям, чтобы кнопка оставалась по центру ячейки
+            };
+
+            nupp.FlatAppearance.BorderSize = 0; // Убираем внешнюю рамку вокруг кнопки
+
+            return nupp; // Возвращаем полностью настроенную кнопку
         }
     }
 }
