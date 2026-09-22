@@ -1,12 +1,12 @@
-﻿using System; 
-using System.Collections.Generic; 
-using System.Drawing; 
-using System.Windows.Forms; 
-using Timer = System.Windows.Forms.Timer; 
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Windows.Forms;
+using Timer = System.Windows.Forms.Timer;
 
-namespace KolmRakendust 
+namespace KolmRakendust
 {
-    public class MalumangForm : Form 
+    public class MalumangForm : Form
     {
         // Объявление закрытых полей формы
         private TableLayoutPanel layoutPaneel; // Табличная панель для размещения карточек
@@ -15,39 +15,47 @@ namespace KolmRakendust
             "!", "!", "N", "N", ",", ",", "k", "k",
             "b", "b", "v", "v", "w", "w", "z", "z"
         };
-        private Label esimeneVajutus = null; // Ссылка на первую открытую карточку
-        private Label teineVajutus = null; // Ссылка на вторую открытую карточку
-        private Timer taimer; // Таймер задержки перед закрытием несовпавших карточек
-        private Timer mangTaimer; // Таймер для отсчета общего времени игры
-        private Label staatusLabel; // Текстовая метка для вывода времени и количества ходов
-        private ComboBox taseCombo; // Выпадающий список выбора уровня сложности
-        private Button startNupp; // Кнопка перезапуска игры
+        private Label esimeneVajutus = null; 
+        private Label teineVajutus = null; 
+        private Timer taimer; 
+        private Timer mangTaimer;
+        private Label staatusLabel; 
+        private Label parimTulemusLabel; 
+        private ComboBox taseCombo; 
+        private Button startNupp; 
 
         private int kulunudAeg = 0; // Переменная для хранения прошедшего времени (в секундах)
         private int kaikudeArv = 0; // Переменная для подсчета количества сделанных ходов
+
+        // Переменные для хранения лучших результатов (сохраняются между играми)
+        private int parimAeg = int.MaxValue;
+        private int parimadKaikud = int.MaxValue;
+
         private Random rand = new Random(); // Генератор случайных чисел для перемешивания карточек
 
         public MalumangForm() // Конструктор формы
         {
             Text = "Mälumäng"; // Установка заголовка окна
-            Size = new Size(600, 650); // Размеры окна (600x650)
+            Size = new Size(600, 680); // Размеры окна
             StartPosition = FormStartPosition.CenterScreen; // Отображение формы по центру экрана
             BackColor = Color.FromArgb(245, 247, 250); // Светлый фон окна
 
-            
             TableLayoutPanel peaPaneel = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill, // Заполнение всей формы
                 RowCount = 3, // Три строки (верхняя панель, поле игры, нижняя инфо-панель)
                 ColumnCount = 1 // Один столбец
             };
-            peaPaneel.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F)); // Высота верхней панели — 40 пикселей
+            peaPaneel.RowStyles.Add(new RowStyle(SizeType.Absolute, 60F)); // Увеличена высота верхней панели для размещения рекорда
             peaPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 80F)); // Игровое поле занимает 80% оставшейся высоты
             peaPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 20F)); // Инфо-панель занимает 20% высоты
 
             // Верхняя панель с элементами управления
             FlowLayoutPanel yleminePaneel = new FlowLayoutPanel { Dock = DockStyle.Fill };
             staatusLabel = new Label { Text = "Aeg: 0 s | Käigud: 0", AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+
+            // Создание текстовой метки для лучшего результата
+            parimTulemusLabel = new Label { Text = "Parim: -", AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Italic), ForeColor = Color.DarkGreen };
 
             // Выпадающий список уровней сложности
             taseCombo = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
@@ -62,6 +70,7 @@ namespace KolmRakendust
             yleminePaneel.Controls.Add(taseCombo);
             yleminePaneel.Controls.Add(startNupp);
             yleminePaneel.Controls.Add(staatusLabel);
+            yleminePaneel.Controls.Add(parimTulemusLabel); // Добавление метки рекорда
 
             peaPaneel.Controls.Add(yleminePaneel, 0, 0); // Размещение верхней панели в первой строке главного контейнера
 
@@ -74,7 +83,7 @@ namespace KolmRakendust
             taimer.Tick += (s, e) =>
             {
                 taimer.Stop(); // Остановка таймера
-                esimeneVajutus.ForeColor = esimeneVajutus.BackColor; // Прячем иконку первой карточки (цвет текста = цвет фона)
+                esimeneVajutus.ForeColor = esimeneVajutus.BackColor; // Прячем иконку первой карточки
                 teineVajutus.ForeColor = teineVajutus.BackColor; // Прячем иконку второй карточки
                 esimeneVajutus = null; // Сброс первой карточки
                 teineVajutus = null; // Сброс второй карточки
@@ -97,7 +106,8 @@ namespace KolmRakendust
                 Text = "Vormi edasiarendused:\r\n" +
                        "1. Tegelikud pildid sümbolite asemel (või Webdings ikoonid).\r\n" +
                        "2. Taimer ja käikude/punktide loendur.\r\n" +
-                       "3. Erinevad tasemed (2x2 ja 4x4 ruudustikud)."
+                       "3. Erinevad tasemed (2x2 ja 4x4 ruudustikud).\r\n" +
+                       "4. Parima tulemuse salvestamine seansi jooksul."
             };
             peaPaneel.Controls.Add(infoBox, 0, 2); // Размещение в третьей строке
 
@@ -108,9 +118,9 @@ namespace KolmRakendust
         // Метод начала / перезапуска игры
         private void AlustaMangu()
         {
-            mangTaimer.Stop(); 
-            kulunudAeg = 0; // Сброс времени
-            kaikudeArv = 0; // Сброс счетчика ходов
+            mangTaimer.Stop();
+            kulunudAeg = 0; // Сброс времени текущей игры
+            kaikudeArv = 0; // Сброс счетчика ходов текущей игры
             UuendaStaatust(); // Обновление статуса на экране
             esimeneVajutus = null; // Сброс выделенной первой карточки
             teineVajutus = null; // Сброс выделенной второй карточки
@@ -133,13 +143,13 @@ namespace KolmRakendust
             }
 
             int kokku = suurus * suurus; // Общее количество карточек
-            List<string> kasutatavad = ikoonid.GetRange(0, kokku); 
-            List<string> koopia = new List<string>(kasutatavad); 
+            List<string> kasutatavad = ikoonid.GetRange(0, kokku);
+            List<string> koopia = new List<string>(kasutatavad);
 
             // Генерация и распределение карточек по сетке
             for (int i = 0; i < kokku; i++)
             {
-                int idx = rand.Next(koopia.Count); // Выбор случайного индекса из оставшихся
+                int idx = rand.Next(koopia.Count); // Выбор случайного индекса
                 string ikoon = koopia[idx]; // Получение иконки
                 koopia.RemoveAt(idx); // Удаление выбранной иконки из доступных
 
@@ -148,12 +158,12 @@ namespace KolmRakendust
                 {
                     Dock = DockStyle.Fill,
                     Text = ikoon, // Символ из шрифта Webdings
-                    Font = new Font("Webdings", suurus == 2 ? 60 : 36, FontStyle.Bold), // Размер шрифта зависит от размера сетки
-                    TextAlign = ContentAlignment.MiddleCenter, // Выравнивание текста по центру
-                    BackColor = Color.FromArgb(155, 89, 182), // Фиолетовый фон карточки
-                    ForeColor = Color.FromArgb(155, 89, 182), // Текст изначально скрыт (соответствует цвету фона)
-                    Margin = new Padding(3), // Внешние отступы
-                    BorderStyle = BorderStyle.FixedSingle // Одинарная рамка карточки
+                    Font = new Font("Webdings", suurus == 2 ? 60 : 36, FontStyle.Bold),
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    BackColor = Color.FromArgb(155, 89, 182),
+                    ForeColor = Color.FromArgb(155, 89, 182), // Текст скрыт
+                    Margin = new Padding(3),
+                    BorderStyle = BorderStyle.FixedSingle
                 };
 
                 kaart.Click += Kaart_Click; // Подключение обработчика клика
@@ -166,37 +176,32 @@ namespace KolmRakendust
         // Обработчик события клика по карточке
         private void Kaart_Click(object sender, EventArgs e)
         {
-            // Игнорировать клики, если активен таймер задержки (прятание карточек)
             if (taimer.Enabled) return;
 
-            Label vajutatud = sender as Label; // Получение ссылки на нажатую карточку
-            // Игнорировать клик, если это не Label или если карточка уже открыта (цвет текста белый)
+            Label vajutatud = sender as Label;
             if (vajutatud == null || vajutatud.ForeColor == Color.White) return;
 
-            // Если это первая открытая карточка в парах
             if (esimeneVajutus == null)
             {
                 esimeneVajutus = vajutatud;
-                esimeneVajutus.ForeColor = Color.White; 
+                esimeneVajutus.ForeColor = Color.White;
                 return;
             }
 
-            // Если это вторая открытая карточка
             teineVajutus = vajutatud;
-            teineVajutus.ForeColor = Color.White; 
+            teineVajutus.ForeColor = Color.White;
             kaikudeArv++; // Увеличиваем счетчик ходов
             UuendaStaatust(); // Обновляем инфо о ходах и времени
 
-            // Проверка совпадения символов
             if (esimeneVajutus.Text == teineVajutus.Text)
             {
-                esimeneVajutus = null; // Очищаем первую карточку (пара найдена, остается открытой)
-                teineVajutus = null; // Очищаем вторую карточку
+                esimeneVajutus = null;
+                teineVajutus = null;
                 KontrolliVoitu(); // Проверяем, не завершена ли игра
             }
             else
             {
-                taimer.Start(); // Карточки не совпали — запускаем таймер для их скрытия
+                taimer.Start();
             }
         }
 
@@ -206,21 +211,28 @@ namespace KolmRakendust
             staatusLabel.Text = $"Aeg: {kulunudAeg} s | Käigud: {kaikudeArv}";
         }
 
-        // Проверка условия победы
+        // Проверка условия победы и обновление рекорда
         private void KontrolliVoitu()
         {
-            // Перебираем все карточки на игровой панели
             foreach (Control control in layoutPaneel.Controls)
             {
                 Label kaart = control as Label;
-                // Если хоть у одной карточки цвет текста совпадает с цветом фона (она закрыта), выходим
                 if (kaart != null && kaart.ForeColor == kaart.BackColor)
                     return;
             }
 
             mangTaimer.Stop(); // Остановка времени после победы
-            // Вывод диалогового окна с победными результатами
-            MessageBox.Show($"Võit! Aeg: {kulunudAeg} sekundit, käike: {kaikudeArv}", "Palju õnne!");
+
+            // Логика проверки и сохранения лучшего результата
+            if (kulunudAeg < parimAeg)
+            {
+                parimAeg = kulunudAeg;
+                parimadKaikud = kaikudeArv;
+                parimTulemusLabel.Text = $"Parim: {parimAeg} s ({parimadKaikud} käiku)"; 
+            }
+
+            // Вывод диалогового окна с победными результатами и текущим рекордом
+            MessageBox.Show($"Võit!\r\nPraegune aeg: {kulunudAeg} s, käike: {kaikudeArv}\r\nParim tulemus: {parimAeg} s", "Palju õnne!");
         }
     }
 }
