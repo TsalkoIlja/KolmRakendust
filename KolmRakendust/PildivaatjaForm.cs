@@ -1,165 +1,164 @@
-﻿using System; 
-using System.Collections.Generic; 
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging; 
-using System.IO; 
-using System.Linq; 
-using System.Windows.Forms; 
-using Timer = System.Windows.Forms.Timer; 
+using System.Drawing.Imaging;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+using Timer = System.Windows.Forms.Timer;
 
-namespace KolmRakendust 
+namespace KolmRakendust
 {
-    public class PildivaatjaForm : Form 
+    public class PildivaatjaForm : Form
     {
-        // Поля формы для графических элементов управления
-        private PictureBox pictureControl; // Элемент для отображения картинки
-        private CheckBox stretchCheck; // Флажок масштабирования/растягивания картинки
-        private Button showBtn, clearBtn, colorBtn, closeBtn, saveBtn, slideBtn; // Основные кнопки
-        private Button eelmineBtn, jargmineBtn; // Кнопки навигации «Назад» и «Вперед»
-        private TableLayoutPanel layoutPaneel; // Главная табличная панель компоновки
-        private FlowLayoutPanel buttonPaneel; // Панель для удобного размещения кнопок в ряд
-        private Timer slideTimer; 
+        // Vormi väljad graafiliste juhtelementide jaoks
+        private PictureBox pictureControl; // Element pildi kuvamiseks
+        private CheckBox stretchCheck; // Märkeruut pildi skaleerimiseks/venitamiseks
+        private Button showBtn, clearBtn, colorBtn, closeBtn, saveBtn, slideBtn; // Põhinupud
+        private Button eelmineBtn, jargmineBtn; // Navigeerimisnupud "Tagasi" ja "Edasi"
+        private TableLayoutPanel layoutPaneel; // Peamine tabelipaneel paigutuse jaoks
+        private FlowLayoutPanel buttonPaneel; // Paneel nuppude mugavaks ühele reale paigutamiseks
+        private Timer slideTimer;
 
-        private List<string> pildidTee = new List<string>(); // Список путей ко всем картинкам в открытой папке
-        private int praeguneIndeks = -1; // Индекс текущей отображаемой картинки в списке
+        private List<string> pildidTee = new List<string>(); // Kõigi avatud kaustas olevate piltide teede loend
+        private int praeguneIndeks = -1; // Praeguse kuvatava pildi indeks loendis
 
-        public PildivaatjaForm() // Конструктор формы
+        public PildivaatjaForm() // Vormi konstruktor
         {
-            Text = "Pildi vaatamise programm"; // Установка заголовка окна
-            Size = new Size(800, 600); // Начальные размеры окна (800x600)
-            StartPosition = FormStartPosition.CenterScreen; // Отображение формы по центру экрана
+            Text = "Pildi vaatamise programm"; // Akna pealkirja määramine
+            Size = new Size(800, 600); // Akna algsed mõõtmed (800x600)
+            StartPosition = FormStartPosition.CenterScreen; // Akna kuvamine ekraani keskel
 
-            // Создание таблицы сетки элементов (2 столбца, 3 строки)
+            // Elementide ruudustikutabeli loomine (2 veergu, 2 rida)
             layoutPaneel = new TableLayoutPanel
             {
-                Dock = DockStyle.Fill, // Заполнение всего пространства формы
-                ColumnCount = 2, // 2 столбца
-                RowCount = 3 // 3 строки
+                Dock = DockStyle.Fill, // Kogu vormi pinna täitmine
+                ColumnCount = 2, // 2 veergu
+                RowCount = 2 // 2 rida
             };
-            // Пропорции ширины столбцов (20% и 80%)
+            // Veergude laiuse osakaalud (20% ja 80%)
             layoutPaneel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
             layoutPaneel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 80F));
-            // Пропорции высоты строк (70% - область картинки, 12% - кнопки, 18% - инфо-поле)
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 70F));
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 12F));
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 18F));
+            // Ridade kõrguse osakaalud (85% pildiala, 15% nupud)
+            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 85F));
+            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 15F));
 
-            // Элемент отображения изображения
+            // Element pildi kuvamiseks
             pictureControl = new PictureBox
             {
-                Dock = DockStyle.Fill, // Растягивание на всю ячейку
-                BorderStyle = BorderStyle.Fixed3D, // Объемная рамка
-                SizeMode = PictureBoxSizeMode.CenterImage // По умолчанию картинка по центру без искажения
+                Dock = DockStyle.Fill, // Kogu lahter täidetakse
+                BorderStyle = BorderStyle.Fixed3D, // Mahuline raam
+                SizeMode = PictureBoxSizeMode.CenterImage // Vaikimisi pilt keskel ilma moonutusteta
             };
-            layoutPaneel.Controls.Add(pictureControl, 0, 0); // Помещаем в ячейку (0,0)
-            layoutPaneel.SetColumnSpan(pictureControl, 2); // Картинка занимает оба столбца
+            layoutPaneel.Controls.Add(pictureControl, 0, 0); // Paigutame lahtrisse (0,0)
+            layoutPaneel.SetColumnSpan(pictureControl, 2); // Pilt võtab mõlemad veerud
 
-            // Флажок (CheckBox) для включения растягивания картинки
+            // Märkeruut (CheckBox) pildi venitamise sisselülitamiseks
             stretchCheck = new CheckBox
             {
-                Text = "Venita pilt", // Текст «Растянуть картинку»
+                Text = "Venita pilt", // Tekst "Venita pilt"
                 Dock = DockStyle.Fill,
                 Font = new Font("Segoe UI", 9, FontStyle.Bold)
             };
-            // Переключение режима отображения картинки при изменении состояния галочки
+            // Pildi kuvamisrežiimi vahetamine linnukese oleku muutmisel
             stretchCheck.CheckedChanged += (s, e) =>
             {
                 pictureControl.SizeMode = stretchCheck.Checked
-                    ? PictureBoxSizeMode.StretchImage // Если галочка стоит — растягивать
-                    : PictureBoxSizeMode.CenterImage; // Если нет — по центру
+                    ? PictureBoxSizeMode.StretchImage // Kui linnuke on väljas – venitada
+                    : PictureBoxSizeMode.CenterImage; // Kui ei – keskele
             };
-            layoutPaneel.Controls.Add(stretchCheck, 0, 1); // Добавляем в 1-ю строку, 0-й столбец
+            layoutPaneel.Controls.Add(stretchCheck, 0, 1); // Lisame 1. rida, 0. veerg
 
-            // Контейнер для горизонтального размещения кнопок управления
+            // Konteiner juhtnuppude horisontaalseks paigutamiseks
             buttonPaneel = new FlowLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                FlowDirection = FlowDirection.RightToLeft, // Размещение кнопок справа налево
-                WrapContents = false // Запрет переноса кнопок на новую строку
+                FlowDirection = FlowDirection.RightToLeft, // Nuppude paigutus paremalt vasakule
+                WrapContents = false // Keela nuppude ülekandmine uuele reale
             };
 
-            // Кнопка закрытия окна
+            // Akna sulgemise nupp
             closeBtn = LooNupp("Sulge", Color.FromArgb(149, 165, 166));
-            closeBtn.Click += (s, e) => Close(); // Закрытие текущей формы
+            closeBtn.Click += (s, e) => Close(); // Praeguse vormi sulgemine
 
-            // Кнопка очистки изображения
+            // Pildi eemaldamise nupp
             clearBtn = LooNupp("Eemalda", Color.FromArgb(231, 76, 60));
             clearBtn.Click += (s, e) =>
             {
-                pictureControl.Image = null; // Удаляем изображение
-                pildidTee.Clear(); // Очищаем список путей файлов
-                praeguneIndeks = -1; // Сбрасываем индекс
-                slideTimer.Stop(); // Останавливаем слайд-шоу, если оно шло
+                pictureControl.Image = null; // Eemaldame pildi
+                pildidTee.Clear(); // Tühjendame failiteede loendi
+                praeguneIndeks = -1; // Lähtestame indeksi
+                slideTimer.Stop(); // Peatame slaidiesitluse, kui see töötas
             };
 
-            // Кнопка изменения цвета фона под картинкой
+            // Pildi taustavärvi muutmise nupp
             colorBtn = LooNupp("Taustavärv", Color.FromArgb(155, 89, 182));
             colorBtn.Click += (s, e) =>
             {
-                using (ColorDialog colorDlg = new ColorDialog()) // Диалог выбора цвета
+                using (ColorDialog colorDlg = new ColorDialog()) // Värvi valimise dialoog
                 {
                     if (colorDlg.ShowDialog() == DialogResult.OK)
-                        pictureControl.BackColor = colorDlg.Color; // Применение выбранного цвета к фону PictureBox
+                        pictureControl.BackColor = colorDlg.Color; // Valitud värvi rakendamine PictureBox taustale
                 }
             };
 
-            // Кнопка сохранения текущего изображения
+            // Praeguse pildi salvestamise nupp
             saveBtn = LooNupp("Salvesta teise formaati", Color.FromArgb(230, 126, 34));
-            saveBtn.Click += (s, e) => SalvestaPilt(); // Вызов метода сохранения
+            saveBtn.Click += (s, e) => SalvestaPilt(); // Salvestamise meetodi kutsumine
 
-            // Кнопка слайд-шоу и настройка таймера
+            // Slaidiesitluse nupp ja taimeri seadistamine
             slideBtn = LooNupp("Slaidishow", Color.FromArgb(241, 196, 15));
-            slideTimer = new Timer { Interval = 2000 }; // Интервал смены картинок — 2 секунды (2000 мс)
+            slideTimer = new Timer { Interval = 2000 }; // Piltide vahetamise intervall – 2 sekundit (2000 ms)
 
-            // Переключение на следующее изображение при каждом срабатывании таймера
+            // Järgmisele pildile lülitumine igal taimeri taktil
             slideTimer.Tick += (s, e) => KuvaPilt(1);
 
-            // Переключение работы слайд-шоу (старт/стоп) по нажатию кнопки
+            // Slaidiesitluse sisse-/väljalülitamine nupuvajutusega
             slideBtn.Click += (s, e) =>
             {
-                if (slideTimer.Enabled) // Если уже запущено
+                if (slideTimer.Enabled) // Kui juba töötab
                 {
-                    slideTimer.Stop(); 
-                    slideBtn.BackColor = Color.FromArgb(241, 196, 15); // Возвращаем желтый цвет кнопки
+                    slideTimer.Stop();
+                    slideBtn.BackColor = Color.FromArgb(241, 196, 15); // Tagastame nupu kollase värvi
                 }
-                else if (pildidTee.Count > 0) // Если есть загруженные картинки
+                else if (pildidTee.Count > 0) // Kui on laaditud pilte
                 {
-                    slideTimer.Start(); 
-                    slideBtn.BackColor = Color.FromArgb(46, 204, 113); // Меняем цвет кнопки на зеленый
+                    slideTimer.Start();
+                    slideBtn.BackColor = Color.FromArgb(46, 204, 113); // Muudame nupu värvi roheliseks
                 }
             };
 
-            // Кнопки навигации по галерее
-            eelmineBtn = LooNupp("<", Color.FromArgb(52, 73, 94)); 
-            jargmineBtn = LooNupp(">", Color.FromArgb(52, 73, 94)); 
-            eelmineBtn.Click += (s, e) => KuvaPilt(-1); // На шаг назад
-            jargmineBtn.Click += (s, e) => KuvaPilt(1); // На шаг вперед
+            // Galerii navigeerimisnupud
+            eelmineBtn = LooNupp("<", Color.FromArgb(52, 73, 94));
+            jargmineBtn = LooNupp(">", Color.FromArgb(52, 73, 94));
+            eelmineBtn.Click += (s, e) => KuvaPilt(-1); // Sammu võrra tagasi
+            jargmineBtn.Click += (s, e) => KuvaPilt(1); // Sammu võrra edasi
 
-            // Кнопка открытия изображения через диалог выбора файлов
+            // Pildi avamise nupp faili valimise dialoogi kaudu
             showBtn = LooNupp("Ava pilt", Color.FromArgb(52, 152, 219));
             showBtn.Click += (s, e) =>
             {
-                using (OpenFileDialog openDlg = new OpenFileDialog()) // Диалог открытия файла
+                using (OpenFileDialog openDlg = new OpenFileDialog()) // Faili avamise dialoog
                 {
-                    openDlg.Filter = "Pildid|*.jpg;*.jpeg;*.png;*.bmp;*.gif"; // Фильтр расширений файлов
+                    openDlg.Filter = "Pildid|*.jpg;*.jpeg;*.png;*.bmp;*.gif"; // Faililaiendite filter
                     if (openDlg.ShowDialog() == DialogResult.OK)
                     {
-                        string valitudFail = openDlg.FileName; // Путь к выбранному файлу
-                        string kaust = Path.GetDirectoryName(valitudFail); // Каталог, где лежит файл
+                        string valitudFail = openDlg.FileName; // Valitud faili tee
+                        string kaust = Path.GetDirectoryName(valitudFail); // Kaust, kus fail asub
 
-                        // Находим все поддерживаемые графические файлы в этой же папке
+                        // Leiame kõik toetatud graafikafailid sellest samast kaustast
                         string[] laendid = { ".jpg", ".jpeg", ".png", ".bmp", ".gif" };
                         pildidTee = Directory.GetFiles(kaust)
-                            .Where(f => laendid.Contains(Path.GetExtension(f).ToLower())) // Фильтрация по расширению
+                            .Where(f => laendid.Contains(Path.GetExtension(f).ToLower())) // Filtreerimine laiendi järgi
                             .ToList();
 
-                        praeguneIndeks = pildidTee.IndexOf(valitudFail); // Определение индекса открытого файла
-                        pictureControl.Load(valitudFail); // Загрузка и показ изображения
+                        praeguneIndeks = pildidTee.IndexOf(valitudFail); // Avatud faili indeksi määramine
+                        pictureControl.Load(valitudFail); // Pildi laadimine ja kuvamine
                     }
                 }
             };
 
-            // Добавление всех кнопок в панель кнопок
+            // Kõigi nuppude lisamine nuppude paneelile
             buttonPaneel.Controls.Add(closeBtn);
             buttonPaneel.Controls.Add(clearBtn);
             buttonPaneel.Controls.Add(saveBtn);
@@ -169,74 +168,60 @@ namespace KolmRakendust
             buttonPaneel.Controls.Add(jargmineBtn);
             buttonPaneel.Controls.Add(eelmineBtn);
 
-            layoutPaneel.Controls.Add(buttonPaneel, 1, 1); // Добавление панели кнопок в сетку (строка 1, столбец 1)
+            layoutPaneel.Controls.Add(buttonPaneel, 1, 1); // Nuppude paneeli lisamine ruudustikku (rida 1, veerg 1)
 
-            // Информационное текстовое поле внизу окна
-            TextBox infoBox = new TextBox
-            {
-                Multiline = true, // Многострочный режим
-                ReadOnly = true, // Запрет редактирования
-                Dock = DockStyle.Fill,
-                Text = "Vormi edasiarendused:\r\n" +
-                       "1. Taustavärvi muutmine (ColorDialog).\r\n" +
-                       "2. Automaatne slaidishow taimeriga.\r\n" +
-                       "3. Pildi salvestamine teise formaati (PNG, JPEG, BMP)."
-            };
-            layoutPaneel.Controls.Add(infoBox, 0, 2); // Размещение в 2-й строке
-            layoutPaneel.SetColumnSpan(infoBox, 2); // Растягивание на 2 столбца
-
-            Controls.Add(layoutPaneel); // Добавление главного макета на форму
+            Controls.Add(layoutPaneel); // Peamise paigutuse lisamine vormile
         }
 
-        // Метод для переключения текущего изображения (вперед/назад) по кругу
+        // Meetod praeguse pildi vahetamiseks (edasi/tagasi) ringikujuliselt
         private void KuvaPilt(int samm)
         {
-            if (pildidTee == null || pildidTee.Count == 0) return; // Если список пуст — ничего не делаем
+            if (pildidTee == null || pildidTee.Count == 0) return; // Kui loend on tühi – ei tee midagi
 
-            praeguneIndeks += samm; // Изменяем текущий индекс
-            if (praeguneIndeks >= pildidTee.Count) praeguneIndeks = 0; // Переход в начало списка при выходе за границы
-            else if (praeguneIndeks < 0) praeguneIndeks = pildidTee.Count - 1; // Переход в конец списка при выходе назад
+            praeguneIndeks += samm; // Muudame praegust indeksit
+            if (praeguneIndeks >= pildidTee.Count) praeguneIndeks = 0; // Loendi algusesse minek üle piiri minnes
+            else if (praeguneIndeks < 0) praeguneIndeks = pildidTee.Count - 1; // Loendi lõppu minek tagasi liikumisel
 
-            pictureControl.Load(pildidTee[praeguneIndeks]); // Загрузка нового файла
+            pictureControl.Load(pildidTee[praeguneIndeks]); // Uue faili laadimine
         }
 
-        // Метод для сохранения открытого изображения в выбранном формате
+        // Meetod avatud pildi salvestamiseks valitud vormingus
         private void SalvestaPilt()
         {
-            if (pictureControl.Image == null) return; // Проверка, что картинка загружена
+            if (pictureControl.Image == null) return; // Kontroll, et pilt on laaditud
 
-            using (SaveFileDialog saveDlg = new SaveFileDialog()) // Диалог сохранения файла
+            using (SaveFileDialog saveDlg = new SaveFileDialog()) // Faili salvestamise dialoog
             {
-                saveDlg.Filter = "PNG Image|*.png|JPEG Image|*.jpg|Bitmap Image|*.bmp"; // Форматы сохранения
+                saveDlg.Filter = "PNG Image|*.png|JPEG Image|*.jpg|Bitmap Image|*.bmp"; // Salvestusvormingud
                 if (saveDlg.ShowDialog() == DialogResult.OK)
                 {
-                    ImageFormat format = ImageFormat.Png; // Формат по умолчанию — PNG
-                    switch (saveDlg.FilterIndex) // Определение формата по выбору пользователя
+                    ImageFormat format = ImageFormat.Png; // Vaikimisi vorming – PNG
+                    switch (saveDlg.FilterIndex) // Vormingu määramine vastavalt kasutaja valikule
                     {
                         case 2: format = ImageFormat.Jpeg; break; // JPEG
                         case 3: format = ImageFormat.Bmp; break; // BMP
                     }
-                    pictureControl.Image.Save(saveDlg.FileName, format); // Сохранение файла на диск
+                    pictureControl.Image.Save(saveDlg.FileName, format); // Faili salvestamine kettale
                 }
             }
         }
 
-        // Вспомогательный метод для унифицированного создания красивых кнопок
+        // Abimeetod ilusate nuppude ühtseks loomiseks
         private Button LooNupp(string tekst, Color varv)
         {
             Button btn = new Button
             {
-                Text = tekst, 
-                AutoSize = true, // Автоматический размер по ширине текста
-                Height = 30, // Фиксированная высота
-                BackColor = varv, 
-                ForeColor = Color.White, 
-                FlatStyle = FlatStyle.Flat, // Плоский стиль отображения
-                Font = new Font("Segoe UI", 9, FontStyle.Bold), // Шрифт
-                Margin = new Padding(2) // Отступы вокруг кнопки
+                Text = tekst,
+                AutoSize = true, // Automaatne suurus vastavalt teksti laiusele
+                Height = 30, // Fikseeritud kõrgus
+                BackColor = varv,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat, // Lame kuvamisstiil
+                Font = new Font("Segoe UI", 9, FontStyle.Bold), // Šrift
+                Margin = new Padding(2) // Veoruum nupu ümber
             };
-            btn.FlatAppearance.BorderSize = 0; // Убираем внешнюю рамку кнопки
-            return btn; // Возврат готовой кнопки
+            btn.FlatAppearance.BorderSize = 0; // Eemaldame nupu välise raami
+            return btn; // Valmis nupu tagastamine
         }
     }
 }

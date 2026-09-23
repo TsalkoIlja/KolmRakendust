@@ -8,172 +8,157 @@ namespace KolmRakendust
 {
     public class MalumangForm : Form
     {
-        // Объявление закрытых полей формы
-        private TableLayoutPanel layoutPaneel; // Табличная панель для размещения карточек
-        private List<string> ikoonid = new List<string> // Список символов шрифта Webdings, используемых в качестве икон (пары)
+        // Vormi privaatsed väljad
+        private TableLayoutPanel layoutPaneel; // Tabelipaneel kaartide paigutamiseks
+        private List<string> ikoonid = new List<string> // Webdings kirjatüübi sümbolite loend kaartide jaoks (paarid)
         {
             "!", "!", "N", "N", ",", ",", "k", "k",
             "b", "b", "v", "v", "w", "w", "z", "z"
         };
-        private Label esimeneVajutus = null; 
-        private Label teineVajutus = null; 
-        private Timer taimer; 
+        private Label esimeneVajutus = null;
+        private Label teineVajutus = null;
+        private Timer taimer;
         private Timer mangTaimer;
-        private Label staatusLabel; 
-        private Label parimTulemusLabel; 
-        private ComboBox taseCombo; 
-        private Button startNupp; 
+        private Label staatusLabel;
+        private Label parimTulemusLabel;
+        private ComboBox taseCombo;
+        private Button startNupp;
 
-        private int kulunudAeg = 0; // Переменная для хранения прошедшего времени (в секундах)
-        private int kaikudeArv = 0; // Переменная для подсчета количества сделанных ходов
+        private int kulunudAeg = 0; // Kulunud aeg sekundites
+        private int kaikudeArv = 0; // Tehtud käikude arv
 
-        // Переменные для хранения лучших результатов (сохраняются между играми)
+        // Parimate tulemuste salvestamine seansi jooksul
         private int parimAeg = int.MaxValue;
         private int parimadKaikud = int.MaxValue;
 
-        private Random rand = new Random(); // Генератор случайных чисел для перемешивания карточек
+        private Random rand = new Random(); // Juhuslike arvude generaator kaartide segamiseks
 
-        public MalumangForm() // Конструктор формы
+        public MalumangForm() // Vormi konstruktor
         {
-            Text = "Mälumäng"; // Установка заголовка окна
-            Size = new Size(600, 680); // Размеры окна
-            StartPosition = FormStartPosition.CenterScreen; // Отображение формы по центру экрана
-            BackColor = Color.FromArgb(245, 247, 250); // Светлый фон окна
+            Text = "Mälumäng"; // Akna pealkiri
+            Size = new Size(600, 680); // Akna mõõtmed
+            StartPosition = FormStartPosition.CenterScreen; // Akna kuvamine ekraani keskel
+            BackColor = Color.FromArgb(245, 247, 250); // Hele taustavärv
 
             TableLayoutPanel peaPaneel = new TableLayoutPanel
             {
-                Dock = DockStyle.Fill, // Заполнение всей формы
-                RowCount = 3, // Три строки (верхняя панель, поле игры, нижняя инфо-панель)
-                ColumnCount = 1 // Один столбец
+                Dock = DockStyle.Fill, // Kogu vormi täitmine
+                RowCount = 2, // Kaks rida (ülemine paneel ja mänguväli)
+                ColumnCount = 1 // Üks veerg
             };
-            peaPaneel.RowStyles.Add(new RowStyle(SizeType.Absolute, 60F)); // Увеличена высота верхней панели для размещения рекорда
-            peaPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 80F)); // Игровое поле занимает 80% оставшейся высоты
-            peaPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 20F)); // Инфо-панель занимает 20% высоты
+            peaPaneel.RowStyles.Add(new RowStyle(SizeType.Absolute, 60F)); // Ülemise paneeli kõrgus
+            peaPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F)); // Mänguväli võtab ülejäänud pinna
 
-            // Верхняя панель с элементами управления
+            // Ülemine paneel juhtelementidega
             FlowLayoutPanel yleminePaneel = new FlowLayoutPanel { Dock = DockStyle.Fill };
             staatusLabel = new Label { Text = "Aeg: 0 s | Käigud: 0", AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
 
-            // Создание текстовой метки для лучшего результата
+            // Tekstisilt parima tulemuse jaoks
             parimTulemusLabel = new Label { Text = "Parim: -", AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Italic), ForeColor = Color.DarkGreen };
 
-            // Выпадающий список уровней сложности
+            // Raskusastme rippmenüü
             taseCombo = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
-            taseCombo.Items.AddRange(new object[] { "2x2 (Kerge)", "4x4 (Tavaline)" }); // Варианты сложности
-            taseCombo.SelectedIndex = 1; // По умолчанию выбран уровень 4x4
+            taseCombo.Items.AddRange(new object[] { "2x2 (Kerge)", "4x4 (Tavaline)" }); // Raskusastmed
+            taseCombo.SelectedIndex = 1; // Vaikimisi 4x4
 
-            // Кнопка запуска новой игры
+            // Uue mängu alustamise nupp
             startNupp = new Button { Text = "Uus mäng", AutoSize = true };
-            startNupp.Click += (s, e) => AlustaMangu(); // При клике запускается метод AlustaMangu
+            startNupp.Click += (s, e) => AlustaMangu(); // Klõpsamisel käivitatakse meetod AlustaMangu
 
-            // Добавление элементов на верхнюю панель
+            // Elementide lisamine ülemisele paneelile
             yleminePaneel.Controls.Add(taseCombo);
             yleminePaneel.Controls.Add(startNupp);
             yleminePaneel.Controls.Add(staatusLabel);
-            yleminePaneel.Controls.Add(parimTulemusLabel); // Добавление метки рекорда
+            yleminePaneel.Controls.Add(parimTulemusLabel);
 
-            peaPaneel.Controls.Add(yleminePaneel, 0, 0); // Размещение верхней панели в первой строке главного контейнера
+            peaPaneel.Controls.Add(yleminePaneel, 0, 0); // Ülemise paneeli paigutamine esimesele reale
 
-            // Панель для игрового поля
+            // Mänguvälja paneel
             layoutPaneel = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(10) };
-            peaPaneel.Controls.Add(layoutPaneel, 0, 1); // Размещение игрового поля во второй строке
+            peaPaneel.Controls.Add(layoutPaneel, 0, 1); // Mänguvälja paigutamine teisele reale
 
-            // Настройка таймера для задержки перед прятанием пары (750 мс)
+            // Taimeri seadistamine kaartide peitmise viivituse jaoks (750 ms)
             taimer = new Timer { Interval = 750 };
             taimer.Tick += (s, e) =>
             {
-                taimer.Stop(); // Остановка таймера
-                esimeneVajutus.ForeColor = esimeneVajutus.BackColor; // Прячем иконку первой карточки
-                teineVajutus.ForeColor = teineVajutus.BackColor; // Прячем иконку второй карточки
-                esimeneVajutus = null; // Сброс первой карточки
-                teineVajutus = null; // Сброс второй карточки
+                taimer.Stop(); // Taimeri peatamine
+                esimeneVajutus.ForeColor = esimeneVajutus.BackColor; // Peidame esimese kaardi ikooni
+                teineVajutus.ForeColor = teineVajutus.BackColor; // Peidame teise kaardi ikooni
+                esimeneVajutus = null; // Esimese kaardi tühistamine
+                teineVajutus = null; // Teise kaardi tühistamine
             };
 
-            // Настройка секундного таймера для общего времени игры
+            // Sekunditaimeri seadistamine üldise mänguaja jaoks
             mangTaimer = new Timer { Interval = 1000 };
             mangTaimer.Tick += (s, e) =>
             {
-                kulunudAeg++; // Увеличение счетчика секунд
-                UuendaStaatust(); // Обновление текста со статистикой
+                kulunudAeg++; // Sekundite loenduri suurendamine
+                UuendaStaatust(); // Olekuriba uuendamine
             };
 
-            // Информационное текстовое поле внизу формы
-            TextBox infoBox = new TextBox
-            {
-                Multiline = true, // Многострочный режим
-                ReadOnly = true, // Только для чтения
-                Dock = DockStyle.Fill, // Заполнение отведенной области
-                Text = "Vormi edasiarendused:\r\n" +
-                       "1. Tegelikud pildid sümbolite asemel (või Webdings ikoonid).\r\n" +
-                       "2. Taimer ja käikude/punktide loendur.\r\n" +
-                       "3. Erinevad tasemed (2x2 ja 4x4 ruudustikud).\r\n" +
-                       "4. Parima tulemuse salvestamine seansi jooksul."
-            };
-            peaPaneel.Controls.Add(infoBox, 0, 2); // Размещение в третьей строке
-
-            Controls.Add(peaPaneel); // Добавление главного контейнера на форму
-            AlustaMangu(); // Автоматический запуск новой игры при открытии
+            Controls.Add(peaPaneel); // Peakonteineri lisamine vormile
+            AlustaMangu(); // Automaatne mängu alustamine avamisel
         }
 
-        // Метод начала / перезапуска игры
+        // Mängu alustamise / taaskäivitamise meetod
         private void AlustaMangu()
         {
             mangTaimer.Stop();
-            kulunudAeg = 0; // Сброс времени текущей игры
-            kaikudeArv = 0; // Сброс счетчика ходов текущей игры
-            UuendaStaatust(); // Обновление статуса на экране
-            esimeneVajutus = null; // Сброс выделенной первой карточки
-            teineVajutus = null; // Сброс выделенной второй карточки
+            kulunudAeg = 0; // Praeguse mängu aja nullimine
+            kaikudeArv = 0; // Praeguse mängu käikude nullimine
+            UuendaStaatust(); // Oleku uuendamine ekraanil
+            esimeneVajutus = null;
+            teineVajutus = null;
 
-            // Очистка предыдущей сетки элементов
+            // Eelmise ruudustiku puhastamine
             layoutPaneel.Controls.Clear();
             layoutPaneel.ColumnStyles.Clear();
             layoutPaneel.RowStyles.Clear();
 
-            // Определение размера сетки (2x2 или 4x4)
+            // Ruudustiku suuruse määramine (2x2 või 4x4)
             int suurus = taseCombo.SelectedIndex == 0 ? 2 : 4;
             layoutPaneel.ColumnCount = suurus;
             layoutPaneel.RowCount = suurus;
 
-            // Настройка пропорциональных размеров столбцов и строк
+            // Veergude ja ridade proportsionaalne seadistamine
             for (int i = 0; i < suurus; i++)
             {
                 layoutPaneel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F / suurus));
                 layoutPaneel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F / suurus));
             }
 
-            int kokku = suurus * suurus; // Общее количество карточек
+            int kokku = suurus * suurus; // Kaartide üldarv
             List<string> kasutatavad = ikoonid.GetRange(0, kokku);
             List<string> koopia = new List<string>(kasutatavad);
 
-            // Генерация и распределение карточек по сетке
+            // Kaartide genereerimine ja ruudustikku paigutamine
             for (int i = 0; i < kokku; i++)
             {
-                int idx = rand.Next(koopia.Count); // Выбор случайного индекса
-                string ikoon = koopia[idx]; // Получение иконки
-                koopia.RemoveAt(idx); // Удаление выбранной иконки из доступных
+                int idx = rand.Next(koopia.Count); // Juhusliku indeksi valimine
+                string ikoon = koopia[idx]; // Ikooni saamine
+                koopia.RemoveAt(idx); // Valitud ikooni eemaldamine saadaolevate hulgast
 
-                // Создание элемента карточки (Label)
+                // Kaardi elemendi (Label) loomine
                 Label kaart = new Label
                 {
                     Dock = DockStyle.Fill,
-                    Text = ikoon, // Символ из шрифта Webdings
+                    Text = ikoon, // Webdings kirjatüübi sümbol
                     Font = new Font("Webdings", suurus == 2 ? 60 : 36, FontStyle.Bold),
                     TextAlign = ContentAlignment.MiddleCenter,
                     BackColor = Color.FromArgb(155, 89, 182),
-                    ForeColor = Color.FromArgb(155, 89, 182), // Текст скрыт
+                    ForeColor = Color.FromArgb(155, 89, 182), // Tekst on peidetud
                     Margin = new Padding(3),
                     BorderStyle = BorderStyle.FixedSingle
                 };
 
-                kaart.Click += Kaart_Click; // Подключение обработчика клика
-                layoutPaneel.Controls.Add(kaart); // Добавление карточки в сетку
+                kaart.Click += Kaart_Click; // Klõpsamise sündmuse sidumine
+                layoutPaneel.Controls.Add(kaart); // Kaardi lisamine ruudustikku
             }
 
-            mangTaimer.Start(); // Запуск отсчета времени
+            mangTaimer.Start(); // Aja lugemise käivitamine
         }
 
-        // Обработчик события клика по карточке
+        // Kaardile vajutamise sündmuse töötleja
         private void Kaart_Click(object sender, EventArgs e)
         {
             if (taimer.Enabled) return;
@@ -190,14 +175,14 @@ namespace KolmRakendust
 
             teineVajutus = vajutatud;
             teineVajutus.ForeColor = Color.White;
-            kaikudeArv++; // Увеличиваем счетчик ходов
-            UuendaStaatust(); // Обновляем инфо о ходах и времени
+            kaikudeArv++; // Käikude loenduri suurendamine
+            UuendaStaatust(); // Oleku uuendamine
 
             if (esimeneVajutus.Text == teineVajutus.Text)
             {
                 esimeneVajutus = null;
                 teineVajutus = null;
-                KontrolliVoitu(); // Проверяем, не завершена ли игра
+                KontrolliVoitu(); // Võidutingimuse kontrollimine
             }
             else
             {
@@ -205,13 +190,13 @@ namespace KolmRakendust
             }
         }
 
-        // Обновление строки состояния
+        // Olekuriba uuendamine
         private void UuendaStaatust()
         {
             staatusLabel.Text = $"Aeg: {kulunudAeg} s | Käigud: {kaikudeArv}";
         }
 
-        // Проверка условия победы и обновление рекорда
+        // Võidutingimuse kontroll ja parima tulemuse uuendamine
         private void KontrolliVoitu()
         {
             foreach (Control control in layoutPaneel.Controls)
@@ -221,17 +206,17 @@ namespace KolmRakendust
                     return;
             }
 
-            mangTaimer.Stop(); // Остановка времени после победы
+            mangTaimer.Stop(); // Aja peatamine pärast võitu
 
-            // Логика проверки и сохранения лучшего результата
+            // Parima tulemuse kontrollimine ja salvestamine
             if (kulunudAeg < parimAeg)
             {
                 parimAeg = kulunudAeg;
                 parimadKaikud = kaikudeArv;
-                parimTulemusLabel.Text = $"Parim: {parimAeg} s ({parimadKaikud} käiku)"; 
+                parimTulemusLabel.Text = $"Parim: {parimAeg} s ({parimadKaikud} käiku)";
             }
 
-            // Вывод диалогового окна с победными результатами и текущим рекордом
+            // Dialoogiakna kuvamine võidutulemustega
             MessageBox.Show($"Võit!\r\nPraegune aeg: {kulunudAeg} s, käike: {kaikudeArv}\r\nParim tulemus: {parimAeg} s", "Palju õnne!");
         }
     }

@@ -7,59 +7,57 @@ namespace KolmRakendust
 {
     public class MatemaatikaForm : Form
     {
-        // Поля для хранения надписей с математическими примерами
+        // Väljad matemaatiliste tehete siltide jaoks
         private Label addLabel, subLabel, multLabel, divLabel;
-        // Поля для хранения информационных меток (сообщение о результате, таймер, счетчик очков)
+        // Väljad infosiltide jaoks (tulemuse teade, taimer, punktide loendur)
         private Label tulemusLabel, aegLabel, punktidLabel;
-        // Поля ввода чисел для ответов пользователя на каждый из 4 примеров
+        // Sisestusväljad kasutaja vastuste jaoks
         private NumericUpDown addInput, subInput, multInput, divInput;
-        // Кнопка для старта игры и кнопка досрочного завершения
+        // Nupud mängu alustamiseks ja enneaegseks lõpetamiseks
         private Button alustaNupp, lopetaNupp;
-        // Выпадающий список выбора сложности
+        // Rippmenüü raskusastme valimiseks
         private ComboBox raskusasteCombo;
-        // Таймер для обратного отсчета времени
+        // Taimer aja tagasiarvestuseks
         private Timer taimer;
 
-        // Переменные для операндов (чисел) каждого из примеров
+        // Muutujad igapäevaste tehete arvude (operandide) jaoks
         private int addA, addB, subA, subB, multA, multB, divA, divB;
         private int jaanudAega;
         private int punktid = 0;
         private Random rand = new Random();
         private TableLayoutPanel layoutPaneel;
 
-
         public MatemaatikaForm()
         {
             Text = "Matemaatiline test";
-            Size = new Size(550, 720); // Слегка увеличили высоту для размещения новой кнопки
-            StartPosition = FormStartPosition.CenterScreen; // Позиция окна по центру
+            Size = new Size(550, 630); // Akna mõõtmed
+            StartPosition = FormStartPosition.CenterScreen; // Akna kuvamine ekraani keskel
             BackColor = Color.FromArgb(245, 247, 250);
 
-            // Инициализация таблицы компоновки (2 столбца, 9 строк)
+            // Paigutustabeli reastuse algseadistamine (2 veergu, 8 rida)
             layoutPaneel = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
-                RowCount = 9,
+                RowCount = 8,
                 Padding = new Padding(15)
             };
 
-            // Разделение ширины таблицы: каждый столбец занимает по 50%
+            // Veergude laiuse jagamine: kumbki veerg võtab 50%
             layoutPaneel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             layoutPaneel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
 
-            // Настройка высоты строк таблицы, чтобы ни один элемент не обрезался
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Строка 0: Сложность и Таймер
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Строка 1: +
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Строка 2: -
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Строка 3: *
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Строка 4: /
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Строка 5: Кнопка старта и Очки
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Строка 6: Кнопка "Lõpeta"
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Строка 7: Результат
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.Absolute, 90F)); // Строка 8: Текстовое поле внизу
+            // Ridade kõrguste seadistamine
+            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Rida 0: Raskusaste ja Taimer
+            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Rida 1: +
+            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Rida 2: -
+            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Rida 3: *
+            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Rida 4: /
+            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Rida 5: Alusta nupp ja Punktid
+            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Rida 6: Nupp "Lõpeta"
+            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Rida 7: Tulemus
 
-            // Метка для отображения времени
+            // Silt aja kuvamiseks
             aegLabel = new Label
             {
                 Text = "Aeg: 40",
@@ -69,7 +67,7 @@ namespace KolmRakendust
                 ForeColor = Color.FromArgb(127, 140, 141)
             };
 
-            // Метка для отображения набранных очков
+            // Silt punktide kuvamiseks
             punktidLabel = new Label
             {
                 Text = "Punktid: 0",
@@ -79,7 +77,7 @@ namespace KolmRakendust
                 ForeColor = Color.FromArgb(41, 128, 185)
             };
 
-            // Выпадающий список уровней сложности
+            // Rippmenüü raskusastmete valikuga
             raskusasteCombo = new ComboBox
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
@@ -89,13 +87,13 @@ namespace KolmRakendust
             raskusasteCombo.Items.AddRange(new object[] { "Kerge", "Keskmine", "Raske" });
             raskusasteCombo.SelectedIndex = 0;
 
-            // Создание текстовых меток для математических операторов через вспомогательный метод
+            // Tekstisiltide loomine tehete jaoks abimeetodi abil
             addLabel = LooLabel("? + ? =");
             subLabel = LooLabel("? - ? =");
             multLabel = LooLabel("? × ? =");
             divLabel = LooLabel("? ÷ ? =");
 
-            // Создание полей ввода ответов через вспомогательный метод
+            // Sisestusväljade loomine abimeetodi abil
             addInput = LooInput();
             subInput = LooInput();
             multInput = LooInput();
@@ -103,7 +101,7 @@ namespace KolmRakendust
 
             MuudaSisenditeOlekut(false);
 
-            // Создание и стилизация кнопки старта
+            // Alusta nupu loomine ja kujundamine
             alustaNupp = new Button
             {
                 Text = "Alusta mängu",
@@ -116,7 +114,7 @@ namespace KolmRakendust
             };
             alustaNupp.FlatAppearance.BorderSize = 0;
 
-            // Кнопка завершения игры
+            // Nupp mängu enneaegseks lõpetamiseks
             lopetaNupp = new Button
             {
                 Text = "Lõpeta",
@@ -126,11 +124,11 @@ namespace KolmRakendust
                 BackColor = Color.FromArgb(230, 126, 34),
                 FlatStyle = FlatStyle.Flat,
                 Anchor = AnchorStyles.None,
-                Enabled = false // Изначально заблокирована
+                Enabled = false // Alguses lukustatud
             };
             lopetaNupp.FlatAppearance.BorderSize = 0;
 
-            // Метка для вывода сообщений о победе или поражении
+            // Silt võidu või kaotuse teate kuvamiseks
             tulemusLabel = new Label
             {
                 Text = "",
@@ -139,24 +137,24 @@ namespace KolmRakendust
                 Font = new Font("Segoe UI", 12, FontStyle.Bold)
             };
 
-            taimer = new Timer { Interval = 1000 }; // Интервал таймера 1 секунда (1000 мс)
+            taimer = new Timer { Interval = 1000 }; // Taimeri intervall 1 sekund (1000 ms)
 
-            // Генерация примеров в зависимости от выбранного уровня сложности
+            // Ülesannete genereerimine sõltuvalt valitud raskusastmest
             alustaNupp.Click += (s, e) =>
             {
                 int maxNum = 20;
                 jaanudAega = 40;
 
-                // Настройка параметров в зависимости от выбранной сложности
+                // Parameetrite seadistamine vastavalt raskusastmele
                 if (raskusasteCombo.SelectedIndex == 1) { maxNum = 50; jaanudAega = 30; }
                 else if (raskusasteCombo.SelectedIndex == 2) { maxNum = 100; jaanudAega = 20; }
 
-                // Разблокируем поля ввода и кнопку "Lõpeta"
+                // Avame sisestusväljad ja nupu "Lõpeta"
                 MuudaSisenditeOlekut(true);
                 raskusasteCombo.Enabled = false;
                 lopetaNupp.Enabled = true;
 
-                // Сброс цвета фона полей
+                // Taastame väljade taustavärvi
                 SebraVarvid(Color.White);
 
                 addA = rand.Next(1, maxNum);
@@ -165,7 +163,7 @@ namespace KolmRakendust
                 addInput.Value = 0;
 
                 subA = rand.Next(2, maxNum);
-                subB = rand.Next(1, subA); // Гарантируем положительный результат при вычитании
+                subB = rand.Next(1, subA); // Garanteerime positiivse tulemuse lahutamisel
                 subLabel.Text = $"{subA} - {subB} =";
                 subInput.Value = 0;
 
@@ -174,7 +172,7 @@ namespace KolmRakendust
                 multLabel.Text = $"{multA} × {multB} =";
                 multInput.Value = 0;
 
-                // Для деления сначала генерируем делитель и частное, чтобы избежать дробей
+                // Jagamistehte jaoks genereerime arvud nii, et tulemus oleks täisarv
                 divB = rand.Next(2, 10);
                 int jagaja = rand.Next(1, maxNum / 2);
                 divA = divB * jagaja;
@@ -186,7 +184,7 @@ namespace KolmRakendust
                 taimer.Start();
             };
 
-            // Логика досрочного завершения по кнопке "Lõpeta"
+            // Mängu enneaegne lõpetamine nupule "Lõpeta" vajutamisel
             lopetaNupp.Click += (s, e) =>
             {
                 if (!taimer.Enabled) return;
@@ -200,7 +198,7 @@ namespace KolmRakendust
 
                 if (koikOiged)
                 {
-                    punktid += 10 + jaanudAega; // Начисляем бонус за оставшиеся секунды
+                    punktid += 10 + jaanudAega; // Boonuspunktid ülejäänud sekundite eest
                     punktidLabel.Text = $"Punktid: {punktid}";
                     tulemusLabel.Text = "Tubli! Kõik vastused olid õiged!";
                     tulemusLabel.ForeColor = Color.FromArgb(39, 174, 96);
@@ -218,7 +216,7 @@ namespace KolmRakendust
                 lopetaNupp.Enabled = false;
             };
 
-            // Автоматическая проверка ответов пользователем
+            // Vastuste automaatne kontrollimine sisestamisel
             EventHandler kontrolliVastuseid = (s, e) =>
             {
                 if (taimer.Enabled &&
@@ -228,7 +226,7 @@ namespace KolmRakendust
                     divInput.Value == divA / divB)
                 {
                     taimer.Stop();
-                    punktid += 10 + jaanudAega; // Начисление бонуса за оставшееся время
+                    punktid += 10 + jaanudAega; // Boonuspunktid ülejäänud aja eest
                     punktidLabel.Text = $"Punktid: {punktid}";
                     tulemusLabel.Text = "Õige! Kõik ülesanded lahendatud!";
                     tulemusLabel.ForeColor = Color.FromArgb(39, 174, 96);
@@ -244,7 +242,7 @@ namespace KolmRakendust
             multInput.ValueChanged += kontrolliVastuseid;
             divInput.ValueChanged += kontrolliVastuseid;
 
-            // Отсчет времени
+            // Aja lugemine
             taimer.Tick += (s, e) =>
             {
                 jaanudAega--;
@@ -257,54 +255,39 @@ namespace KolmRakendust
 
                     KontrolliJaVarviVastused();
 
-                    // Блокируем поля ввода, чтобы нельзя было вносить ответы после окончания времени
+                    // Lukustame sisestusväljad pärast aja lõppemist
                     MuudaSisenditeOlekut(false);
                     raskusasteCombo.Enabled = true;
                     lopetaNupp.Enabled = false;
                 }
             };
 
-            // Размещение выборочных элементов в табличной сетке
+            // Elementide paigutamine tabelipaneeli
             layoutPaneel.Controls.Add(raskusasteCombo, 0, 0);
             layoutPaneel.Controls.Add(aegLabel, 1, 0);
 
-            // Добавление строк с примерами в сетку
+            // Tehete ridade lisamine
             LisaRida(addLabel, addInput, 1);
             LisaRida(subLabel, subInput, 2);
             LisaRida(multLabel, multInput, 3);
             LisaRida(divLabel, divInput, 4);
 
-            // Размещение кнопки старта и очков
+            // Alusta nupu ja punktide paigutamine
             layoutPaneel.Controls.Add(alustaNupp, 0, 5);
             layoutPaneel.Controls.Add(punktidLabel, 1, 5);
 
-            // Размещение кнопки досрочного завершения
+            // Enneaegse lõpetamise nupu paigutamine
             layoutPaneel.Controls.Add(lopetaNupp, 0, 6);
             layoutPaneel.SetColumnSpan(lopetaNupp, 2);
 
-            // Размещение статуса результата
+            // Tulemuse oleku paigutamine
             layoutPaneel.Controls.Add(tulemusLabel, 0, 7);
             layoutPaneel.SetColumnSpan(tulemusLabel, 2);
-
-            // Информационное текстовое поле внизу формы
-            TextBox infoBox = new TextBox
-            {
-                Multiline = true,
-                ReadOnly = true,
-                Dock = DockStyle.Fill,
-                ScrollBars = ScrollBars.Vertical, // Включена прокрутка для гарантированного показа всего текста
-                Text = "Vormi edasiarendused:\r\n" +
-                       "1. Erinevad tehete tüübid (+, -, *, /).\r\n" +
-                       "2. Taimer ja punktiarvestus kiiruse põhjal.\r\n" +
-                       "3. Raskusastme valik (Kerge, Keskmine, Raske)."
-            };
-            layoutPaneel.Controls.Add(infoBox, 0, 8);
-            layoutPaneel.SetColumnSpan(infoBox, 2);
 
             Controls.Add(layoutPaneel);
         }
 
-        // Вспомогательный метод включения/выключения всех полей ввода
+        // Abimeetod kõigi sisestusväljade sisse-/väljalülitamiseks
         private void MuudaSisenditeOlekut(bool olek)
         {
             addInput.Enabled = olek;
@@ -313,7 +296,7 @@ namespace KolmRakendust
             divInput.Enabled = olek;
         }
 
-        // Подсветка правильных/неправильных ответов
+        // Õigete ja valede vastuste värvimine
         private void KontrolliJaVarviVastused()
         {
             addInput.BackColor = (addInput.Value == addA + addB) ? Color.LightGreen : Color.LightCoral;
@@ -322,7 +305,7 @@ namespace KolmRakendust
             divInput.BackColor = (divInput.Value == divA / divB) ? Color.LightGreen : Color.LightCoral;
         }
 
-        // Установка одинакового цвета фона полей
+        // Väljadele ühtlase taustavärvi määramine
         private void SebraVarvid(Color color)
         {
             addInput.BackColor = color;
@@ -331,7 +314,7 @@ namespace KolmRakendust
             divInput.BackColor = color;
         }
 
-        // Вспомогательный метод для создания однотипных текстовых меток с примерами
+        // Abimeetod ühesuguste tekstisiltide loomiseks
         private Label LooLabel(string tekst)
         {
             return new Label
@@ -344,7 +327,7 @@ namespace KolmRakendust
             };
         }
 
-        // Вспомогательный метод для создания элементов ввода чисел
+        // Abimeetod arvu sisestusväljade loomiseks
         private NumericUpDown LooInput()
         {
             NumericUpDown input = new NumericUpDown
@@ -359,7 +342,7 @@ namespace KolmRakendust
             return input;
         }
 
-        // Вспомогательный метод добавления пары «Метка + Поле ввода» в указанную строку сетки
+        // Abimeetod paari "Silt + Sisestusväli" lisamiseks tabeli reale
         private void LisaRida(Label lbl, NumericUpDown inp, int row)
         {
             layoutPaneel.Controls.Add(lbl, 0, row);
