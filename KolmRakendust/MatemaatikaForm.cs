@@ -13,8 +13,8 @@ namespace KolmRakendust
         private Label tulemusLabel, aegLabel, punktidLabel;
         // Sisestusväljad kasutaja vastuste jaoks
         private NumericUpDown addInput, subInput, multInput, divInput;
-        // Nupud mängu alustamiseks ja enneaegseks lõpetamiseks
-        private Button alustaNupp, lopetaNupp;
+        // Nupud mängu alustamiseks, enneaegseks lõpetamiseks ja akna sulgemiseks
+        private Button alustaNupp, lopetaNupp, sulgeNupp;
         // Rippmenüü raskusastme valimiseks
         private ComboBox raskusasteCombo;
         // Taimer aja tagasiarvestuseks
@@ -30,16 +30,16 @@ namespace KolmRakendust
         public MatemaatikaForm()
         {
             Text = "Matemaatiline test";
-            Size = new Size(550, 630); // Akna mõõtmed
+            Size = new Size(550, 670); // Akna kõrgust natuke suurendatud nupu jaoks
             StartPosition = FormStartPosition.CenterScreen; // Akna kuvamine ekraani keskel
             BackColor = Color.FromArgb(245, 247, 250);
 
-            // Paigutustabeli reastuse algseadistamine (2 veergu, 8 rida)
+            // Paigutustabeli reastuse algseadistamine (2 veergu, 9 rida)
             layoutPaneel = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
-                RowCount = 8,
+                RowCount = 9,
                 Padding = new Padding(15)
             };
 
@@ -55,7 +55,8 @@ namespace KolmRakendust
             layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Rida 4: /
             layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Rida 5: Alusta nupp ja Punktid
             layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Rida 6: Nupp "Lõpeta"
-            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Rida 7: Tulemus
+            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Rida 7: Nupp "Sulge"
+            layoutPaneel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Rida 8: Tulemus
 
             // Silt aja kuvamiseks
             aegLabel = new Label
@@ -127,6 +128,20 @@ namespace KolmRakendust
                 Enabled = false // Alguses lukustatud
             };
             lopetaNupp.FlatAppearance.BorderSize = 0;
+
+            // Nupp akna sulgemiseks
+            sulgeNupp = new Button
+            {
+                Text = "Sulge",
+                Size = new Size(180, 35),
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                ForeColor = Color.White,
+                BackColor = Color.FromArgb(231, 76, 60),
+                FlatStyle = FlatStyle.Flat,
+                Anchor = AnchorStyles.None
+            };
+            sulgeNupp.FlatAppearance.BorderSize = 0;
+            sulgeNupp.Click += (s, e) => Close(); // Sulgeb vormi
 
             // Silt võidu või kaotuse teate kuvamiseks
             tulemusLabel = new Label
@@ -280,8 +295,12 @@ namespace KolmRakendust
             layoutPaneel.Controls.Add(lopetaNupp, 0, 6);
             layoutPaneel.SetColumnSpan(lopetaNupp, 2);
 
+            // Sulgemise nupu paigutamine
+            layoutPaneel.Controls.Add(sulgeNupp, 0, 7);
+            layoutPaneel.SetColumnSpan(sulgeNupp, 2);
+
             // Tulemuse oleku paigutamine
-            layoutPaneel.Controls.Add(tulemusLabel, 0, 7);
+            layoutPaneel.Controls.Add(tulemusLabel, 0, 8);
             layoutPaneel.SetColumnSpan(tulemusLabel, 2);
 
             Controls.Add(layoutPaneel);

@@ -77,12 +77,12 @@ namespace KolmRakendust
                 WrapContents = false // Keela nuppude ülekandmine uuele reale
             };
 
-            // Akna sulgemise nupp
-            closeBtn = LooNupp("Sulge", Color.FromArgb(149, 165, 166));
+            // Akna sulgemise nupp (värv vahetatud "Eemalda" nupuga)
+            closeBtn = LooNupp("Sulge", Color.FromArgb(231, 76, 60));
             closeBtn.Click += (s, e) => Close(); // Praeguse vormi sulgemine
 
-            // Pildi eemaldamise nupp
-            clearBtn = LooNupp("Eemalda", Color.FromArgb(231, 76, 60));
+            // Pildi eemaldamise nupp (värv vahetatud "Sulge" nupuga)
+            clearBtn = LooNupp("Eemalda", Color.FromArgb(149, 165, 166));
             clearBtn.Click += (s, e) =>
             {
                 pictureControl.Image = null; // Eemaldame pildi

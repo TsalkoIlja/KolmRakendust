@@ -23,6 +23,7 @@ namespace KolmRakendust
         private Label parimTulemusLabel;
         private ComboBox taseCombo;
         private Button startNupp;
+        private Button sulgeNupp; // Nupp akna sulgemiseks
 
         private int kulunudAeg = 0; // Kulunud aeg sekundites
         private int kaikudeArv = 0; // Tehtud käikude arv
@@ -65,9 +66,15 @@ namespace KolmRakendust
             startNupp = new Button { Text = "Uus mäng", AutoSize = true };
             startNupp.Click += (s, e) => AlustaMangu(); // Klõpsamisel käivitatakse meetod AlustaMangu
 
+            // Akna sulgemise nupp
+            sulgeNupp = new Button { Text = "Sulge", AutoSize = true, BackColor = Color.FromArgb(231, 76, 60), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+            sulgeNupp.FlatAppearance.BorderSize = 0;
+            sulgeNupp.Click += (s, e) => Close(); // Klõpsamisel sulgetakse vorm
+
             // Elementide lisamine ülemisele paneelile
             yleminePaneel.Controls.Add(taseCombo);
             yleminePaneel.Controls.Add(startNupp);
+            yleminePaneel.Controls.Add(sulgeNupp);
             yleminePaneel.Controls.Add(staatusLabel);
             yleminePaneel.Controls.Add(parimTulemusLabel);
 
